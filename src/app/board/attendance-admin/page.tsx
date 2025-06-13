@@ -1,5 +1,7 @@
 "use client";
 
+import { CalendarProvider } from "@/components/calendar-context";
+import CourseCalendar from "@/components/calendar/course-calendar";
 import { AppSidebar } from "@/components/shared/navigation/app.sidebar";
 import UserDropdown from "@/components/shared/navigation/user.dropdown";
 import FeedbackDialog from "@/components/shared/others/feedback.dialog";
@@ -18,7 +20,7 @@ import { SidebarInset, SidebarProvider, SidebarTrigger } from "@/components/ui/s
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useClassSessionsQuery, useEmargementsQuery } from "@/hooks/queries/use-attendance.query";
 import { useCurrentUser } from "@/hooks/queries/use-auth.query";
-import { RiAdminLine, RiFileListLine, RiScanLine, RiUserSearchLine } from "@remixicon/react";
+import { RiAdminLine, RiCalendarLine, RiFileListLine, RiScanLine, RiUserSearchLine } from "@remixicon/react";
 import { redirect } from "next/navigation";
 import { useState } from "react";
 import { AdminHelpGuide } from "./components/admin-help-guide";
@@ -105,6 +107,7 @@ export default function AttendanceAdminPage() {
           {isAdmin ? (
             <Tabs defaultValue="emargements" className="w-full" onValueChange={(value) => refetchCurrentTab(value)}>
               <div className="flex justify-between items-center mb-4">
+                {" "}
                 <TabsList>
                   <TabsTrigger value="emargements" className="flex items-center gap-2">
                     <RiFileListLine size={18} />
@@ -113,6 +116,10 @@ export default function AttendanceAdminPage() {
                   <TabsTrigger value="sessions" className="flex items-center gap-2">
                     <RiUserSearchLine size={18} />
                     <span>Sessions de cours</span>
+                  </TabsTrigger>
+                  <TabsTrigger value="calendar" className="flex items-center gap-2">
+                    <RiCalendarLine size={18} />
+                    <span>Calendrier</span>
                   </TabsTrigger>
                 </TabsList>
                 <Button
@@ -192,6 +199,11 @@ export default function AttendanceAdminPage() {
                   pageSize={pageSize}
                   onPageSizeChange={setPageSize}
                 />
+              </TabsContent>
+              <TabsContent value="calendar" className="mt-0">
+                <CalendarProvider>
+                  <CourseCalendar classSessions={sessionsData || []} isLoading={isSessionsLoading} />
+                </CalendarProvider>
               </TabsContent>
             </Tabs>
           ) : (
