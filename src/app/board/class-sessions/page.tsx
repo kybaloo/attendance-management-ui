@@ -1,5 +1,7 @@
 "use client";
 
+import { CalendarProvider } from "@/components/calendar-context";
+import CourseCalendar from "@/components/calendar/course-calendar";
 import { AppSidebar } from "@/components/shared/navigation/app.sidebar";
 import UserDropdown from "@/components/shared/navigation/user.dropdown";
 import FeedbackDialog from "@/components/shared/others/feedback.dialog";
@@ -15,45 +17,24 @@ import {
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { SidebarInset, SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { useCurrentUser } from "@/hooks/queries/use-auth.query";
 import { useClassSessionsQuery } from "@/hooks/queries/use-class-session.query";
-import { ClassSession } from "@/types/attendance.types";
-import { RiCalendarCheckLine, RiCalendarLine, RiScanLine } from "@remixicon/react";
+import { RiCalendarLine, RiScanLine } from "@remixicon/react";
 import { useState } from "react";
 import { AddClassSessionDialog } from "./components/add-class-session.dialog";
-import { ClassSessionsCalendar } from "./components/class-sessions-calendar";
-import { ClassSessionsTable } from "./components/class-sessions.table";
 
 export default function ClassSessionsPage() {
-  const { data: user } = useCurrentUser();
-  const [, setActiveTab] = useState("calendar");
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
-
-  // État de pagination
-  const [currentPage, setCurrentPage] = useState(1);
-  const pageSize = 10;
 
   // Récupération des sessions de cours
   const { data, isLoading, refetch } = useClassSessionsQuery();
 
-  // Vérification des droits d'administration
-  const isAdmin = user?.user?.role === "ADMIN";
-
-  // Rafraîchir les données selon l'onglet actif
+  // Rafraîchir les données
   const refetchCurrentTab = () => {
     refetch();
   };
 
-  // Gérer l'édition d'une session
-  const handleEditSession = (session: ClassSession) => {
-    // À implémenter selon les besoins
-    console.log("Éditer la session:", session);
-  };
-
   // Calculer les données paginées
   const classSessions = Array.isArray(data) ? data : [];
-  const totalItems = classSessions.length;
 
   return (
     <SidebarProvider>
@@ -86,7 +67,6 @@ export default function ClassSessionsPage() {
         </header>
         <div className="flex flex-1 flex-col gap-4 lg:gap-6 py-4 lg:py-6">
           {/* Page intro */}
-
           <div className="flex items-center justify-between gap-4">
             <div className="items-center gap-2">
               <h1 className="text-2xl font-semibold flex items-center gap-2">
@@ -96,58 +76,13 @@ export default function ClassSessionsPage() {
               <p className="text-sm text-muted-foreground">Visualisez et gérez les sessions de cours.</p>
             </div>
             <Button onClick={() => setIsAddDialogOpen(true)}>Ajouter une session</Button>
+          </div>{" "}
+          {/* Replace Tabs and custom calendar with BigCalendar */}
+          <div className="w-full">
+            <CalendarProvider>
+              <CourseCalendar classSessions={classSessions} isLoading={isLoading} />
+            </CalendarProvider>
           </div>
-
-          <Tabs
-            defaultValue="calendar"
-            className="w-full"
-            onValueChange={(value) => {
-              setActiveTab(value);
-              refetchCurrentTab();
-            }}
-          >
-            <div className="flex justify-between items-center mb-4">
-              <TabsList>
-                <TabsTrigger value="calendar" className="flex items-center gap-2">
-                  <RiCalendarLine size={18} />
-                  <span>Calendrier</span>
-                </TabsTrigger>
-                <TabsTrigger value="list" className="flex items-center gap-2">
-                  <RiCalendarCheckLine size={18} />
-                  <span>Liste</span>
-                </TabsTrigger>
-              </TabsList>
-              <Button variant="outline" onClick={refetchCurrentTab}>
-                Actualiser
-              </Button>
-            </div>
-
-            <TabsContent value="calendar" className="mt-0">
-              <ClassSessionsCalendar
-                classSessions={classSessions}
-                isLoading={isLoading}
-                canEdit={isAdmin || user?.user?.role === "TEACHER"}
-                onRefresh={refetchCurrentTab}
-              />
-            </TabsContent>
-
-            <TabsContent value="list" className="mt-0">
-              <ClassSessionsTable
-                classSessions={classSessions}
-                isLoading={isLoading}
-                canEdit={isAdmin || user?.user?.role === "TEACHER"}
-                onEdit={handleEditSession}
-                onDelete={refetchCurrentTab}
-                pagination={{
-                  currentPage,
-                  pageSize,
-                  totalItems,
-                  onPageChange: setCurrentPage,
-                }}
-              />
-            </TabsContent>
-          </Tabs>
-
           {/* Dialog d'ajout de session de cours */}
           <AddClassSessionDialog isOpen={isAddDialogOpen} onOpenChange={setIsAddDialogOpen} onSuccess={refetchCurrentTab} />
         </div>
