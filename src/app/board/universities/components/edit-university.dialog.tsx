@@ -25,7 +25,7 @@ interface EditUniversityDialogProps {
   university: University | null;
 }
 
-export function EditUniversityDialog({ isOpen, onOpenChange, university }: EditUniversityDialogProps) {
+export function EditUniversityDialog({ isOpen, onOpenChange, university }: Readonly<EditUniversityDialogProps>) {
   const { data: organizations } = useOrganizationsQuery();
   const { data: users } = useUsersQuery();
 
