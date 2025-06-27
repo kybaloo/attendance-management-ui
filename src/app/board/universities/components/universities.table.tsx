@@ -31,7 +31,7 @@ interface UniversitiesTableProps {
   onDelete: () => void;
 }
 
-export function UniversitiesTable({ universities, isLoading, isAdmin, onEdit, onDelete }: UniversitiesTableProps) {
+export function UniversitiesTable({ universities, isLoading, isAdmin, onEdit, onDelete }: Readonly<UniversitiesTableProps>) {
   const { mutate: deleteUniversity } = useDeleteUniversityMutation();
 
   const handleDelete = async (id: string) => {
