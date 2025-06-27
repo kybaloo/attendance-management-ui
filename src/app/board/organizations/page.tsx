@@ -1,7 +1,5 @@
 "use client";
 
-import { Button } from "@/components/ui/button";
-import { useCurrentUser } from "@/hooks/queries/use-auth.query";
 import { PiBuildingsDuotone } from "react-icons/pi";
 import { EditOrganizationDialog } from "./components/edit-organizations.dialog";
 import { useOrganizationsQuery } from "@/hooks/queries/use-organizations.query";
