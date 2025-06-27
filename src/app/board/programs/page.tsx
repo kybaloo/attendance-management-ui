@@ -1,22 +1,8 @@
 "use client";
 
-import { AppSidebar } from "@/components/shared/navigation/app.sidebar";
-import UserDropdown from "@/components/shared/navigation/user.dropdown";
-import FeedbackDialog from "@/components/shared/others/feedback.dialog";
-import { ModeToggle } from "@/components/shared/theme/mode-toggle";
-import {
-  Breadcrumb,
-  BreadcrumbItem,
-  BreadcrumbLink,
-  BreadcrumbList,
-  BreadcrumbPage,
-  BreadcrumbSeparator,
-} from "@/components/ui/breadcrumb";
 import { Button } from "@/components/ui/button";
-import { Separator } from "@/components/ui/separator";
-import { SidebarInset, SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import { useCurrentUser } from "@/hooks/queries/use-auth.query";
-import { RiBookmarkLine, RiScanLine } from "@remixicon/react";
+import { RiBookmarkLine } from "@remixicon/react";
 import { useEffect, useState } from "react";
 import { EditProgramDialog } from "./components/edit-program.dialog";
 import { useProgramsQuery } from "@/hooks/queries/use-program.query";
@@ -34,7 +20,6 @@ export default function ProgramsPage() {
   useCurrentUser();
   const { data: programs, isLoading, refetch } = useProgramsQuery();
 
-  // const isAdmin = user?.user?.role === "ADMIN";
   const isAdmin = true;
 
   useEffect(() => {
