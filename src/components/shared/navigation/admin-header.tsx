@@ -6,6 +6,7 @@ import { ModeToggle } from "../theme/mode-toggle";
 import UserDropdown from "./user.dropdown";
 import { useBreadcrumb } from "@/contexts/breadcrumb.context";
 import { RiScanLine } from "react-icons/ri";
+import FeedbackDialog from "../others/feedback.dialog";
 
 export default function AdminHeader() {
   const { pageTitle } = useBreadcrumb();
@@ -31,6 +32,7 @@ export default function AdminHeader() {
         </Breadcrumb>
       </div>
       <div className="flex gap-3 ml-auto">
+        <FeedbackDialog />
         <ModeToggle />
         <UserDropdown />
       </div>
