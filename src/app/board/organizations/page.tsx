@@ -17,7 +17,6 @@ export default function AcademicYearsPage() {
   const [editingYear, setEditingYear] = useState<Organization | null>(null);
 
   const { setPageTitle } = useBreadcrumb();
-  const { data: user } = useCurrentUser();
   const { data: organizations, isLoading, refetch } = useOrganizationsQuery();
 
   const isAdmin = true;
