@@ -97,7 +97,7 @@ export function AcademicYearsTable({ academicYears, isLoading, isAdmin, onEdit, 
                           <AlertDialogCancel>Annuler</AlertDialogCancel>
                           <AlertDialogAction
                             onClick={() => handleDelete(year.id)}
-                            className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                            className="bg-destructive text-white hover:bg-destructive/90"
                           >
                             Supprimer
                           </AlertDialogAction>
