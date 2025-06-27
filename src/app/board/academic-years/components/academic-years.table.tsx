@@ -26,7 +26,7 @@ interface AcademicYearsTableProps {
   onDelete: () => void;
 }
 
-export function AcademicYearsTable({ academicYears, isLoading, isAdmin, onEdit, onDelete }: AcademicYearsTableProps) {
+export function AcademicYearsTable({ academicYears, isLoading, isAdmin, onEdit, onDelete }: Readonly<AcademicYearsTableProps>) {
   const { mutate: deleteAcademicYear } = useDeleteAcademicYearMutation();
 
   const handleDelete = (id: string) => {
