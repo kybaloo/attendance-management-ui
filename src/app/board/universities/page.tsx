@@ -1,24 +1,9 @@
 "use client";
 
-import { AppSidebar } from "@/components/shared/navigation/app.sidebar";
-import UserDropdown from "@/components/shared/navigation/user.dropdown";
-import FeedbackDialog from "@/components/shared/others/feedback.dialog";
-import { ModeToggle } from "@/components/shared/theme/mode-toggle";
-import {
-  Breadcrumb,
-  BreadcrumbItem,
-  BreadcrumbLink,
-  BreadcrumbList,
-  BreadcrumbPage,
-  BreadcrumbSeparator,
-} from "@/components/ui/breadcrumb";
-import { Button } from "@/components/ui/button";
-import { Separator } from "@/components/ui/separator";
-import { SidebarInset, SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import { useCurrentUser } from "@/hooks/queries/use-auth.query";
 import { useUniversitiesQuery } from "@/hooks/queries/use-universities.query";
 import { University } from "@/types/university.types";
-import { RiBuilding2Line, RiScanLine } from "@remixicon/react";
+import { RiBuilding2Line } from "@remixicon/react";
 import { useEffect, useState } from "react";
 import { AddUniversityDialog } from "./components/add-university.dialog";
 import { EditUniversityDialog } from "./components/edit-university.dialog";
