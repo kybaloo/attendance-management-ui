@@ -37,18 +37,7 @@ export default function AcademicYearsPage() {
           onClick: () => setIsAddDialogOpen(true),
         }}
       />
-      <div className="flex flex-1 flex-col gap-4 lg:gap-6 py-4 lg:py-6">
-        {/* Page intro */}
-        <div className="flex items-center justify-between gap-4">
-          <div className="space-y-1">
-            <h1 className="text-2xl font-semibold flex items-center gap-2">
-              <PiBuildingsDuotone className="text-primary" />
-              Organisations
-            </h1>
-            <p className="text-sm text-muted-foreground">Gérez les organisations de votre institution.</p>
-          </div>
-          {isAdmin && <Button onClick={() => setIsAddDialogOpen(true)}>Ajouter</Button>}
-        </div>
+      <div className="container mx-auto py-10">
 
         {/* Table */}
         <div className="flex-1 overflow-auto">
