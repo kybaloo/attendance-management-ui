@@ -40,7 +40,7 @@ export function AddUniversityDialog({
   isOpen,
   onOpenChange,
   onSuccess,
-}: AddUniversityDialogProps) {
+}: Readonly<AddUniversityDialogProps>) {
   const { data: organizations } = useOrganizationsQuery();
   const { data: users } = useUsersQuery();
 
@@ -127,7 +127,7 @@ export function AddUniversityDialog({
                     </FormControl>
                     <SelectContent>
                       {users?.users?.map((user) => (
-                        <SelectItem key={user.id} value={user.id||""}>
+                        <SelectItem key={user.id} value={user.id ?? ""}>
                           {user.name}
                         </SelectItem>
                       ))}
