@@ -19,9 +19,9 @@ export default function AcademicYearsPage() {
 
   const isAdmin = true;
 
-  useEffect(() => {
+ useEffect(() => {
     setPageTitle("Organisations");
-  }, [setPageTitle]);
+  }, [setPageTitle]); 
 
   return (
     <div>
