@@ -15,7 +15,7 @@ import { useUsersQuery } from "@/hooks/queries/use-user.query";
 const formSchema = z.object({
   id: z.string(),
   name: z.string().min(2, "Le nom doit contenir au moins 2 caractères"),
-  organization: z.string().min(1, "Veuillez sélectionner une organisation"),
+  organisation: z.string().min(1, "Veuillez sélectionner une organisation"),
   responsable: z.string().min(1, "Veuillez sélectionner un responsable"),
 });
 
@@ -34,7 +34,7 @@ export function EditUniversityDialog({ isOpen, onOpenChange, university }: Reado
     defaultValues: {
       id: "",
       name: "",
-      organization: "",
+      organisation: "",
       responsable: "",
     },
   });
@@ -46,8 +46,8 @@ export function EditUniversityDialog({ isOpen, onOpenChange, university }: Reado
       form.reset({
         id: university.id,
         name: university.name,
-        organization: typeof university.organization === "string" ? university.organization : university.organization?.id || "",
-        responsable: typeof university.responsable === "string" ? university.responsable : university.responsable?.email || "",
+        organisation: typeof university.organisation === "string" ? university.organisation : university.organisation?.id ?? "",
+        responsable: typeof university.responsable === "string" ? university.responsable : university.responsable?.email ?? "",
       });
     }
   }, [form, university]);
@@ -87,7 +87,7 @@ export function EditUniversityDialog({ isOpen, onOpenChange, university }: Reado
             />
             <FormField
               control={form.control}
-              name="organization"
+              name="organisation"
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Organisation</FormLabel>
@@ -123,7 +123,7 @@ export function EditUniversityDialog({ isOpen, onOpenChange, university }: Reado
                     </FormControl>
                     <SelectContent>
                       {users?.users?.map((user) => (
-                        <SelectItem key={user.id} value={user.id || ""}>
+                        <SelectItem key={user.id} value={user.id ?? ""}>
                           {user.name}
                         </SelectItem>
                       ))}
