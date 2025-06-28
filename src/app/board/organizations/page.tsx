@@ -19,14 +19,14 @@ export default function AcademicYearsPage() {
 
   const isAdmin = true;
 
- useEffect(() => {
+  useEffect(() => {
     setPageTitle("Organisations");
-  }, [setPageTitle]); 
+  }, [setPageTitle]);
 
   return (
     <div>
       <PageHeader
-      icon={<PiBuildingsDuotone className="text-primary" />}
+        icon={<PiBuildingsDuotone className="text-primary" />}
         title={"Gestion des organisations"}
         subtitle={"Gérez les organisations de votre institution."}
         action={{
