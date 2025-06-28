@@ -313,7 +313,6 @@ export function EventCalendar({
                   </DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>
-              <ThemeToggle />
             </div>
           </div>
         </div>

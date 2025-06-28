@@ -23,11 +23,13 @@ import { useProfessorTodaysCoursesQuery, useProfessorWeekCoursesQuery } from "@/
 import { useCurrentUser } from "@/hooks/queries/use-auth.query";
 import { RiCalendar2Line, RiCheckboxLine, RiScanLine } from "@remixicon/react";
 import { format, startOfWeek } from "date-fns";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { TodaysCoursesList } from "./components/todays-courses-list";
+import { useBreadcrumb } from "@/contexts/breadcrumb.context";
 
 export default function AttendancePage() {
   const { data: user } = useCurrentUser();
+  const { setPageTitle } = useBreadcrumb();
   const userId = user?.user?.id;
   const isProfessor = user?.user?.role === "TEACHER";
 
@@ -59,6 +61,11 @@ export default function AttendancePage() {
     }
   };
 
+
+   useEffect(() => {
+    setPageTitle("Émargement des cours");
+  }, [setPageTitle]);
+  
   return (
     <SidebarProvider>
       <AppSidebar />
