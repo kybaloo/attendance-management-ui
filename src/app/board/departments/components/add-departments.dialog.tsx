@@ -13,6 +13,7 @@ import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, For
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useCreateDepartmentMutation } from "@/hooks/queries/use-departments.query";
+import { useUniversitiesQuery } from "@/hooks/queries/use-universities.query";
 import { DepartmentCreateInput } from "@/types/departments.types";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { RiBuildingLine } from "@remixicon/react";
@@ -34,7 +35,7 @@ interface AddDepartmentDialogProps {
 }
 
 export default function AddDepartmentDialog({ isOpen, onOpenChange, onSuccess }: Readonly<AddDepartmentDialogProps>) {
-
+  const { data: universities } = useUniversitiesQuery();
   const form = useForm<DepartmentFormInput>({
     resolver: zodResolver(departmentSchema),
     defaultValues: {
@@ -68,56 +69,55 @@ export default function AddDepartmentDialog({ isOpen, onOpenChange, onSuccess }:
 
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[550px]">
-        <DialogHeader className="space-y-3">
+      <DialogContent className="sm:max-w-[425px]">
+        <DialogHeader>
           <DialogTitle>Ajouter un département</DialogTitle>
           <DialogDescription>Créez un nouveau département dans le système.</DialogDescription>
         </DialogHeader>
 
         <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-5 py-2">
-            <div className="grid gap-5 sm:grid-cols-2">
-              <FormField
-                control={form.control}
-                name="name"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Nom</FormLabel>
+          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4 pt-4">
+            <FormField
+              control={form.control}
+              name="name"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Nom</FormLabel>
+                  <FormControl>
+                    <Input placeholder="Nom du département" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="universityId"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Université</FormLabel>
+                  <Select onValueChange={field.onChange} defaultValue={field.value}>
                     <FormControl>
-                      <Input placeholder="Nom du département" {...field} />
+                      <SelectTrigger>
+                        <SelectValue placeholder="Sélectionner une université" />
+                      </SelectTrigger>
                     </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <FormField
-                control={form.control}
-                name="universityId"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Université</FormLabel>
-                    <Select onValueChange={field.onChange} defaultValue={field.value}>
-                      <FormControl>
-                        <SelectTrigger>
-                          <SelectValue placeholder="Sélectionner une université" />
-                        </SelectTrigger>
-                      </FormControl>
-                      <SelectContent>
-                        {/* Remplacez ces éléments par les données réelles des universités */}
-                        <SelectItem value="university-1">Université 1</SelectItem>
-                        <SelectItem value="university-2">Université 2</SelectItem>
-                      </SelectContent>
-                    </Select>
-                    <FormDescription className="text-xs">
-                      Sélectionnez l&apos;université à laquelle appartient ce département.
-                    </FormDescription>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-            </div>
-
+                    <SelectContent>
+                      {universities?.map((univ) => (
+                        <SelectItem key={univ.id} value={univ.id}>
+                          {univ.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <FormDescription className="text-xs">
+                    Sélectionnez l&apos;université à laquelle appartient ce département.
+                  </FormDescription>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
             <DialogFooter className="pt-2">
               <Button variant="outline" type="button" onClick={() => onOpenChange(false)}>
                 Annuler
