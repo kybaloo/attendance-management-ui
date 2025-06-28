@@ -58,7 +58,7 @@ const transformClassSessionToEvent = (classSession: ClassSession): CalendarEvent
   };
 };
 
-export default function CourseCalendar({ classSessions = [], isLoading = false }: CourseCalendarProps) {
+export default function CourseCalendar({ classSessions = [], isLoading = false }: Readonly<CourseCalendarProps>) {
   const { isColorVisible } = useCalendarContext();
   const { data: user } = useCurrentUser();
 
