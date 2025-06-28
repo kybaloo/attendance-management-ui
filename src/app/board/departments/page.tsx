@@ -31,9 +31,7 @@ export default function DepartmentsPage() {
   const [editingDepartment, setEditingDepartment] = useState<Department | null>(null);
   const { data, isLoading, refetch } = useDepartmentsQuery(page, 10);
   const departments = data?.departments || [];
-  const total = data?.total ?? 0;
-  const limit = data?.limit ?? 10;
-
+  const isAdmin = true;
 
   useEffect(() => {
     setPageTitle("Organisations");
@@ -55,13 +53,16 @@ export default function DepartmentsPage() {
         <DepartmentsTable
           departments={departments || []}
           isLoading={isLoading}
+          isAdmin={isAdmin}
           onEdit={(department) => setEditingDepartment(department)}
-          onDelete={() => refetch()} 
-          />
+          onDelete={() => refetch()}
+        />
       </div>
 
+      {/* Add Program Dialog */}
       <AddDepartmentDialog isOpen={isAddDialogOpen} onOpenChange={setIsAddDialogOpen} onSuccess={refetch} />
-      
+
+      {/* Edit Program Dialog */}
       <EditDepartmentDialog
         department={editingDepartment}
         open={!!editingDepartment}
