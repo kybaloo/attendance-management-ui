@@ -56,7 +56,7 @@ const DepartmentsTable: React.FC<DepartmentsTableProps> = ({
             <TableRow key={department.id}>
               {" "}
               <TableCell>{department.name}</TableCell>
-              <TableCell>{department.university?.name || "Non défini"}</TableCell>
+              <TableCell>{department.university?.name ?? "-"}</TableCell>
               <TableCell>
                 <div className="flex gap-2">
                   <Button variant="outline" size="sm" onClick={() => onEdit(department)} className="flex items-center gap-1">
