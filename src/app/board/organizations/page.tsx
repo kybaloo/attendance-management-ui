@@ -27,7 +27,7 @@ export default function AcademicYearsPage() {
     <div>
       <PageHeader
       icon={<PiBuildingsDuotone className="text-primary" />}
-        title={"Organisations"}
+        title={"Gestion des organisations"}
         subtitle={"Gérez les organisations de votre institution."}
         action={{
           label: "Nouvelle organisation",
