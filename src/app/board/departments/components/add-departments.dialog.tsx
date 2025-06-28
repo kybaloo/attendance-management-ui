@@ -16,7 +16,6 @@ import { useCreateDepartmentMutation } from "@/hooks/queries/use-departments.que
 import { DepartmentCreateInput } from "@/types/departments.types";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { RiBuildingLine } from "@remixicon/react";
-import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { z } from "zod";
@@ -28,8 +27,13 @@ const departmentSchema = z.object({
 
 type DepartmentFormInput = z.infer<typeof departmentSchema>;
 
-export default function AddDepartmentDialog({ onSuccess }: { onSuccess?: () => void }) {
-  const [open, setOpen] = useState(false);
+interface AddDepartmentDialogProps {
+  isOpen: boolean;
+  onOpenChange: (open: boolean) => void;
+  onSuccess?: () => void;
+}
+
+export default function AddDepartmentDialog({ isOpen, onOpenChange, onSuccess }: Readonly<AddDepartmentDialogProps>) {
 
   const form = useForm<DepartmentFormInput>({
     resolver: zodResolver(departmentSchema),
@@ -51,8 +55,8 @@ export default function AddDepartmentDialog({ onSuccess }: { onSuccess?: () => v
     createDepartment(departmentInput, {
       onSuccess: () => {
         toast.success("Département créé avec succès");
-        setOpen(false);
         form.reset();
+        onOpenChange(false);
         onSuccess?.();
       },
       onError: (error) => {
@@ -63,13 +67,7 @@ export default function AddDepartmentDialog({ onSuccess }: { onSuccess?: () => v
   };
 
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger asChild>
-        <Button className="gap-2">
-          <RiBuildingLine aria-hidden="true" />
-          Ajouter un département
-        </Button>
-      </DialogTrigger>
+    <Dialog open={isOpen} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-[550px]">
         <DialogHeader className="space-y-3">
           <DialogTitle>Ajouter un département</DialogTitle>
@@ -121,7 +119,7 @@ export default function AddDepartmentDialog({ onSuccess }: { onSuccess?: () => v
             </div>
 
             <DialogFooter className="pt-2">
-              <Button variant="outline" type="button" onClick={() => setOpen(false)}>
+              <Button variant="outline" type="button" onClick={() => onOpenChange(false)}>
                 Annuler
               </Button>
               <Button type="submit" disabled={isPending}>
