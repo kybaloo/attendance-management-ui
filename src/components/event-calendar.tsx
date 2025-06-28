@@ -13,7 +13,6 @@ import { DayView } from "@/components/day-view";
 import { EventDialog } from "@/components/event-dialog";
 import { MonthView } from "@/components/month-view";
 import Participants from "@/components/participants";
-import ThemeToggle from "@/components/theme-toggle";
 import { CalendarEvent, CalendarView } from "@/components/types";
 import { Button } from "@/components/ui/button";
 import {
@@ -313,7 +312,6 @@ export function EventCalendar({
                   </DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>
-              <ThemeToggle />
             </div>
           </div>
         </div>

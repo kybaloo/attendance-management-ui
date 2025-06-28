@@ -14,14 +14,6 @@ import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuGroup,
-  DropdownMenuItem,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Pagination, PaginationContent, PaginationItem } from "@/components/ui/pagination";
@@ -36,9 +28,9 @@ import {
   RiArrowUpSLine,
   RiCloseCircleLine,
   RiDeleteBinLine,
+  RiEdit2Line,
   RiErrorWarningLine,
   RiFilter3Line,
-  RiMoreLine,
   RiSearch2Line,
 } from "@remixicon/react";
 import {
@@ -75,7 +67,7 @@ const roleFilterFn: FilterFn<User> = (row, columnId, filterValue: string[]) => {
   return filterValue.includes(role);
 };
 
-export default function UsersTable({ users, isLoading, page, limit, total, onPageChange, onEdit }: UsersTableProps) {
+export default function UsersTable({ users, isLoading, page, limit, total, onPageChange, onEdit }: Readonly<UsersTableProps>) {
   const id = useId();
   const { mutate: deleteUser } = useDeleteUserMutation();
   const [deletingId, setDeletingId] = useState<string | null>(null);
@@ -282,7 +274,7 @@ export default function UsersTable({ users, isLoading, page, limit, total, onPag
                   style={{ width: `${column.size}px` }}
                   className="relative h-9 select-none bg-sidebar border-y border-border first:border-l first:rounded-l-lg last:border-r last:rounded-r-lg"
                 >
-                  {typeof column.header === "string" ? column.header : column.id || ""}
+                  {typeof column.header === "string" ? column.header : column.id ?? ""}
                 </TableHead>
               ))}
             </TableRow>
@@ -559,7 +551,7 @@ function RowActions({
   onDelete: (id: string) => void;
   isDeleting: boolean;
 }) {
-  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
+  const [, setShowDeleteDialog] = useState(false);
   const [isUpdatePending, startUpdateTransition] = useTransition();
   const { mutate: deleteUser } = useDeleteUserMutation();
 
@@ -582,48 +574,38 @@ function RowActions({
   };
 
   return (
-    <>
-      <DropdownMenu>
-        <DropdownMenuTrigger asChild>
-          <div className="flex justify-end">
-            <Button size="icon" variant="ghost" className="shadow-none text-muted-foreground/60" aria-label="Modifier l'utilisateur">
-              <RiMoreLine className="size-5" size={20} aria-hidden="true" />
-            </Button>
-          </div>
-        </DropdownMenuTrigger>
-        <DropdownMenuContent align="end" className="w-auto">
-          <DropdownMenuGroup>
-            <DropdownMenuItem onClick={() => onEdit(user)} disabled={isUpdatePending}>
-              Modifier l&apos;utilisateur
-            </DropdownMenuItem>
-          </DropdownMenuGroup>
-          <DropdownMenuSeparator />
-          <DropdownMenuItem
-            onClick={() => setShowDeleteDialog(true)}
-            variant="destructive"
-            className="dark:data-[variant=destructive]:focus:bg-destructive/10"
-          >
-            Supprimer
-          </DropdownMenuItem>
-        </DropdownMenuContent>
-      </DropdownMenu>
+    <div className="flex justify-end gap-2">
+      <Button size="sm" variant="ghost" onClick={() => onEdit(user)}>
+        <RiEdit2Line className="h-4 w-4" />
+        <span className="sr-only">Modifier</span>
+      </Button>
 
-      <AlertDialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
+      <AlertDialog>
+        <AlertDialogTrigger asChild>
+          <Button size="sm" variant="ghost" className="text-destructive" disabled={isDeleting || isUpdatePending}>
+            <RiDeleteBinLine className="h-4 w-4" />
+            <span className="sr-only">Supprimer</span>
+          </Button>
+        </AlertDialogTrigger>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Êtes-vous sûr ?</AlertDialogTitle>
+            <AlertDialogTitle>Êtes-vous sûr?</AlertDialogTitle>
             <AlertDialogDescription>
-              Cette action est irréversible. Cela va supprimer définitivement cet utilisateur.
+              Cette action ne peut pas être annulée. Cela supprimera définitivement l&apos;useranisation {user.name}.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel disabled={isDeleting || isUpdatePending}>Annuler</AlertDialogCancel>
-            <AlertDialogAction onClick={handleDelete} disabled={isDeleting || isUpdatePending}>
+            <AlertDialogCancel>Annuler</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleDelete}
+              disabled={isDeleting || isUpdatePending}
+              className="bg-destructive text-white hover:bg-destructive/90"
+            >
               Supprimer
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
-    </>
+    </div>
   );
 }

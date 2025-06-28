@@ -1,14 +1,6 @@
 "use client";
 import { Button } from "@/components/ui/button";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -16,8 +8,6 @@ import { useCreateUserMutation } from "@/hooks/queries/use-user.query";
 import { UserRole } from "@/types/auth.types";
 import { UserCreateInput } from "@/types/user.types";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { RiUserAddLine } from "@remixicon/react";
-import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { z } from "zod";
@@ -32,9 +22,13 @@ const userSchema = z.object({
 
 type UserFormInput = z.infer<typeof userSchema>;
 
-export default function AddUserDialog({ onSuccess }: { onSuccess?: () => void }) {
-  const [open, setOpen] = useState(false);
+interface AddUserDialogProps {
+  isOpen: boolean;
+  onOpenChange: (open: boolean) => void;
+  onSuccess?: () => void;
+}
 
+export default function AddUserDialog({ isOpen, onOpenChange, onSuccess }: Readonly<AddUserDialogProps>) {
   const form = useForm<UserFormInput>({
     resolver: zodResolver(userSchema),
     defaultValues: {
@@ -61,8 +55,8 @@ export default function AddUserDialog({ onSuccess }: { onSuccess?: () => void })
     createUser(userInput, {
       onSuccess: () => {
         toast.success("Utilisateur créé avec succès");
-        setOpen(false);
         form.reset();
+        onOpenChange(false);
         onSuccess?.();
       },
       onError: (error) => {
@@ -73,13 +67,7 @@ export default function AddUserDialog({ onSuccess }: { onSuccess?: () => void })
   };
 
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger asChild>
-        <Button className="gap-2">
-          <RiUserAddLine aria-hidden="true" />
-          Ajouter un utilisateur
-        </Button>
-      </DialogTrigger>
+    <Dialog open={isOpen} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-[550px]">
         <DialogHeader className="space-y-3">
           <DialogTitle>Ajouter un utilisateur</DialogTitle>
@@ -176,7 +164,7 @@ export default function AddUserDialog({ onSuccess }: { onSuccess?: () => void })
             </div>
 
             <DialogFooter className="pt-2">
-              <Button variant="outline" type="button" onClick={() => setOpen(false)}>
+              <Button variant="outline" type="button" onClick={() => onOpenChange(false)}>
                 Annuler
               </Button>
               <Button type="submit" disabled={isPending}>
