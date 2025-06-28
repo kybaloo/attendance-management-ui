@@ -1,6 +1,5 @@
 "use client";
 
-import { Button } from "@/components/ui/button";
 import { useCurrentUser } from "@/hooks/queries/use-auth.query";
 import { RiBookmarkLine } from "@remixicon/react";
 import { useEffect, useState } from "react";
@@ -38,17 +37,6 @@ export default function ProgramsPage() {
         }}
       />
       <div className="container mx-auto py-10">
-        {/* Page intro */}
-        <div className="flex items-center justify-between gap-4">
-          <div className="space-y-1">
-            <h1 className="text-2xl font-semibold flex items-center gap-2">
-              <RiBookmarkLine className="text-primary" />
-              Programmes
-            </h1>
-            <p className="text-sm text-muted-foreground">Gérez les programmes académiques de votre institution.</p>
-          </div>
-          {isAdmin && <Button onClick={() => setIsAddDialogOpen(true)}>Ajouter</Button>}
-        </div>
 
         {/* Table */}
         <div className="flex-1 overflow-auto">
