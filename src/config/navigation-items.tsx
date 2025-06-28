@@ -76,15 +76,15 @@ export const mainSections: NavMenuGroup[] = [
         permission: ["ADMIN", "SUPERVISOR"],
       },
       {
-        title: "Programmes",
-        url: routes.board.programs,
-        icon: PiBookmarkDuotone,
-        permission: ["ADMIN", "SUPERVISOR"],
-      },
-      {
         title: "Départements",
         url: routes.board.departments,
         icon: PiBuildingDuotone,
+        permission: ["ADMIN", "SUPERVISOR"],
+      },
+      {
+        title: "Programmes",
+        url: routes.board.programs,
+        icon: PiBookmarkDuotone,
         permission: ["ADMIN", "SUPERVISOR"],
       },
       {
