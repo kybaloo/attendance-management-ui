@@ -20,9 +20,9 @@ import { RiBuildingLine } from "@remixicon/react";
 import { useEffect, useState } from "react";
 import AddDepartmentDialog from "./components/add-departments.dialog";
 import { EditDepartmentDialog } from "./components/edit-departments.dialog";
-import DepartmentsTable from "./components/departments.table";
 import { useBreadcrumb } from "@/contexts/breadcrumb.context";
 import { PageHeader } from "@/components/shared/page-header";
+import { DepartmentsTable } from "./components/departments.table";
 
 export default function DepartmentsPage() {
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
@@ -53,15 +53,11 @@ export default function DepartmentsPage() {
       <div className="container mx-auto py-10">
 
         <DepartmentsTable
-          departments={departments}
+          departments={departments || []}
           isLoading={isLoading}
-          page={page}
-          limit={limit}
-          total={total}
-          onPageChange={setPage}
           onEdit={(department) => setEditingDepartment(department)}
-          onDelete={() => refetch()}
-        />
+          onDelete={() => refetch()} 
+          />
       </div>
 
       <AddDepartmentDialog isOpen={isAddDialogOpen} onOpenChange={setIsAddDialogOpen} onSuccess={refetch} />
