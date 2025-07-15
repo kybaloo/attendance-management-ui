@@ -1,7 +1,7 @@
-import { useQuery } from "@tanstack/react-query";
+import { Department } from "@/types/departments.types";
 import { getAuthToken } from "@/utils/auth-utils";
 import api from "@/utils/axios";
-import { Department } from "@/types/departments.types";
+import { useQuery } from "@tanstack/react-query";
 
 // Types basés sur le Swagger
 export interface BusinessStatistics {
