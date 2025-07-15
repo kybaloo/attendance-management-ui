@@ -1,10 +1,10 @@
 "use client";
 
 import { useCurrentUser } from "@/hooks/queries/use-auth.query";
-import { 
-  useBusinessStatisticsQuery, 
-  useAdminStatisticsQuery, 
-  useProfessorStatisticsQuery 
+import {
+  useAdminStatisticsQuery,
+  useBusinessStatisticsQuery,
+  useProfessorStatisticsQuery,
 } from "@/hooks/queries/use-statistics.query";
 import { useMemo } from "react";
 
@@ -14,40 +14,29 @@ export function DynamicStatsGrid() {
   const userId = user?.user?.id;
 
   // Requêtes conditionnelles selon le rôle
-  const { 
-    data: businessStats, 
-    isLoading: isBusinessLoading 
-  } = useBusinessStatisticsQuery(undefined, {
+  const { data: businessStats, isLoading: isBusinessLoading } = useBusinessStatisticsQuery(undefined, {
     enabled: userRole === "ADMIN" || userRole === "SUPERVISOR",
   });
 
-  const { 
-    data: adminStats, 
-    isLoading: isAdminLoading 
-  } = useAdminStatisticsQuery(undefined, {
+  const { data: adminStats, isLoading: isAdminLoading } = useAdminStatisticsQuery(undefined, {
     enabled: userRole === "ADMIN",
   });
 
-  const { 
-    data: professorStats, 
-    isLoading: isProfessorLoading 
-  } = useProfessorStatisticsQuery(userId || "", {
+  const { data: professorStats, isLoading: isProfessorLoading } = useProfessorStatisticsQuery(userId || "", {
     enabled: userRole === "TEACHER" && !!userId,
   });
 
   // Transformer les données selon le rôle
   const stats = useMemo(() => {
     const isLoading = isBusinessLoading || isAdminLoading || isProfessorLoading;
-    
+
     if (isLoading) {
       return [
         {
           title: "Chargement...",
           value: "...",
           change: { value: "...", trend: "up" as const },
-          icon: (
-            <div className="animate-spin h-4 w-4 border-2 border-current border-t-transparent rounded-full" />
-          ),
+          icon: <div className="animate-spin h-4 w-4 border-2 border-current border-t-transparent rounded-full" />,
         },
       ];
     }
@@ -295,9 +284,10 @@ export function DynamicStatsGrid() {
   }, [userRole, businessStats, adminStats, professorStats, isBusinessLoading, isAdminLoading, isProfessorLoading]);
 
   // Affichage en grille adaptée selon le nombre de stats
-  const gridCols = userRole === "ADMIN" && stats.length > 4 
-    ? "grid-cols-2 min-[768px]:grid-cols-3 min-[1200px]:grid-cols-4"
-    : "grid-cols-2 min-[1200px]:grid-cols-4";
+  const gridCols =
+    userRole === "ADMIN" && stats.length > 4
+      ? "grid-cols-2 min-[768px]:grid-cols-3 min-[1200px]:grid-cols-4"
+      : "grid-cols-2 min-[1200px]:grid-cols-4";
 
   return (
     <div className={`grid ${gridCols} border border-border rounded-xl bg-gradient-to-br from-sidebar/60 to-sidebar`}>
@@ -308,7 +298,12 @@ export function DynamicStatsGrid() {
   );
 }
 
-function StatsCard({ title, value, change, icon }: {
+function StatsCard({
+  title,
+  value,
+  change,
+  icon,
+}: {
   title: string;
   value: string;
   change: { value: string; trend: "up" | "down" };
@@ -326,9 +321,7 @@ function StatsCard({ title, value, change, icon }: {
         </div>
         {/* Content */}
         <div>
-          <div className="font-medium tracking-widest text-xs uppercase text-muted-foreground/60">
-            {title}
-          </div>
+          <div className="font-medium tracking-widest text-xs uppercase text-muted-foreground/60">{title}</div>
           <div className="text-2xl font-semibold mb-2">{value}</div>
           <div className="text-xs text-muted-foreground/60">
             <span className={`font-medium ${trendColor}`}>
