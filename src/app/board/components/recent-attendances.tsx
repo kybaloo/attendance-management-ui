@@ -73,7 +73,7 @@ function transformEmargementData(emargement: RecentEmargement): AttendanceData {
       name: emargement.professor.name,
       initials: getInitials(emargement.professor.name),
     },
-    courseTitle: emargement.classSession.course.name,
+    courseTitle: emargement.classSession.course.title,
     status: mapStatus(emargement.status),
     date: formatDate(emargement.classSession.date),
     time: formatTime(emargement.classSession.heureDebut, emargement.classSession.heureFin),
