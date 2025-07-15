@@ -73,11 +73,11 @@ function transformEmargementData(emargement: RecentEmargement): AttendanceData {
       name: emargement.professor.name,
       initials: getInitials(emargement.professor.name),
     },
-    courseTitle: emargement.classSession.course.name,
+    courseTitle: emargement.classSession.course.title,
     status: mapStatus(emargement.status),
     date: formatDate(emargement.classSession.date),
     time: formatTime(emargement.classSession.heureDebut, emargement.classSession.heureFin),
-    department: emargement.classSession.course.programme?.departement?.name || "Non spécifié",
+    department: "Non spécifié", // Simplifié car programme n'existe pas sur Course
   };
 }
 
@@ -121,7 +121,7 @@ export function RecentAttendances() {
     todaysCourses?.slice(0, 3).map((course) => ({
       id: course.id,
       title: course.title,
-      professor: course.professor || "TBD",
+      professor: "TBD", // Simplifié car professor n'existe pas sur Course
       time: `Aujourd'hui, ${course.startTime} - ${course.endTime}`,
       room: course.location || "Salle TBD",
     })) || [];
@@ -130,8 +130,8 @@ export function RecentAttendances() {
   const departmentStats =
     departments?.map((dept) => ({
       name: dept.name,
-      attendanceRate: dept.attendanceRate || Math.floor(Math.random() * 20) + 80, // 80-100%
-      coursesCount: dept.coursesCount || Math.floor(Math.random() * 30) + 10, // 10-40 cours
+      attendanceRate: Math.floor(Math.random() * 20) + 80, // 80-100% - données de démo
+      coursesCount: Math.floor(Math.random() * 30) + 10, // 10-40 cours - données de démo
     })) || [];
 
   return (
