@@ -11,16 +11,17 @@ import { format, parseISO } from "date-fns";
 import { fr } from "date-fns/locale";
 import Link from "next/link";
 import { redirect } from "next/navigation";
-import { useEffect } from "react";
+import { use, useEffect } from "react";
 import { toast } from "sonner";
 
 interface AttendanceDetailPageProps {
-  params: {
+  params: Promise<{
     id: string;
-  };
+  }>;
 }
 
 export default function AttendanceDetailPage({ params }: AttendanceDetailPageProps) {
+  const { id } = use(params);
   const { data: user } = useCurrentUser();
   const isAdmin = user?.user?.role === "ADMIN";
   const { setPageTitle } = useBreadcrumb();
@@ -30,7 +31,7 @@ export default function AttendanceDetailPage({ params }: AttendanceDetailPagePro
     redirect("/board");
   }
 
-  const { data: emargement, isLoading, error, refetch } = useEmargementQuery(params.id);
+  const { data: emargement, isLoading, error, refetch } = useEmargementQuery(id);
 
   const { mutate: updateStatus, isPending } = useUpdateEmargementStatusMutation();
 
@@ -40,7 +41,7 @@ export default function AttendanceDetailPage({ params }: AttendanceDetailPagePro
 
   const handleStatusChange = (newStatus: string) => {
     updateStatus(
-      { id: params.id, status: newStatus },
+      { id: id, status: newStatus },
       {
         onSuccess: () => {
           toast.success("Statut de l'émargement mis à jour avec succès");
