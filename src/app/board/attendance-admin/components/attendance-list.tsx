@@ -25,6 +25,7 @@ import { Emargement } from "@/types/attendance.types";
 import { RiMoreLine } from "@remixicon/react";
 import { format, parseISO } from "date-fns";
 import { fr } from "date-fns/locale";
+import Link from "next/link";
 import { useState } from "react";
 import { toast } from "sonner";
 import { ExportToPdfButton } from "./export-to-pdf-button";
@@ -170,7 +171,10 @@ export function AttendanceList({
                       <DropdownMenuContent align="end">
                         <DropdownMenuLabel>Actions</DropdownMenuLabel>
                         <DropdownMenuSeparator />
-                        <DropdownMenuItem onClick={() => openDetailsDialog(emargement)}>Voir les détails</DropdownMenuItem>
+                        <DropdownMenuItem onClick={() => openDetailsDialog(emargement)}>Voir les détails (modal)</DropdownMenuItem>
+                        <DropdownMenuItem asChild>
+                          <Link href={`/board/attendance-admin/${emargement.id}`}>Voir la page détaillée</Link>
+                        </DropdownMenuItem>
                         <DropdownMenuSeparator />
                         <DropdownMenuItem onClick={() => handleStatusChange(emargement.id, "PRESENT")}>
                           Marquer présent
