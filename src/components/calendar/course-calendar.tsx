@@ -5,8 +5,12 @@ import { ClassSessionDialog } from "@/components/class-session-dialog";
 import { EventCalendar } from "@/components/event-calendar";
 import { CalendarEvent, EventColor } from "@/components/types";
 import { useCurrentUser } from "@/hooks/queries/use-auth.query";
+import { useUpdateClassSessionMutation } from "@/hooks/queries/use-class-session.query";
 import { ClassSession } from "@/types/attendance.types";
-import { useMemo, useState } from "react";
+import { format } from "date-fns";
+import { fr } from "date-fns/locale";
+import { useMemo, useOptimistic, useState } from "react";
+import { toast } from "sonner";
 
 interface CourseCalendarProps {
   classSessions?: ClassSession[];
@@ -64,6 +68,7 @@ const transformClassSessionToEvent = (classSession: ClassSession): CalendarEvent
 export default function CourseCalendar({ classSessions = [], isLoading = false }: Readonly<CourseCalendarProps>) {
   const { isColorVisible } = useCalendarContext();
   const { data: user } = useCurrentUser();
+  const updateClassSessionMutation = useUpdateClassSessionMutation();
 
   // Filter class sessions based on user role
   const filteredClassSessions = useMemo(() => {
@@ -86,10 +91,27 @@ export default function CourseCalendar({ classSessions = [], isLoading = false }
     return classSessions;
   }, [classSessions, user]);
 
+  // Use optimistic updates for class sessions
+  const [optimisticClassSessions, updateOptimisticClassSessions] = useOptimistic(
+    filteredClassSessions,
+    (state: ClassSession[], optimisticUpdate: { id: string; date: string; heureDebut: string; heureFin: string }) => {
+      return state.map((session) =>
+        session.id === optimisticUpdate.id
+          ? {
+              ...session,
+              date: optimisticUpdate.date,
+              heureDebut: optimisticUpdate.heureDebut,
+              heureFin: optimisticUpdate.heureFin,
+            }
+          : session
+      );
+    }
+  );
+
   // Transform class sessions to calendar events
   const classSessionEvents = useMemo(() => {
-    return filteredClassSessions.map(transformClassSessionToEvent);
-  }, [filteredClassSessions]);
+    return optimisticClassSessions.map(transformClassSessionToEvent);
+  }, [optimisticClassSessions]);
 
   // Additional events that can be added by users
   const [additionalEvents, setAdditionalEvents] = useState<CalendarEvent[]>([]);
@@ -107,27 +129,68 @@ export default function CourseCalendar({ classSessions = [], isLoading = false }
   const handleEventAdd = (event: CalendarEvent) => {
     setAdditionalEvents((prev) => [...prev, event]);
   };
-  const handleEventUpdate = (updatedEvent: CalendarEvent) => {
-    // Only allow updating additional events, not class sessions
-    const isClassSession = filteredClassSessions.some((cs) => cs.id === updatedEvent.id);
-    if (!isClassSession) {
-      setAdditionalEvents((prev) => prev.map((event) => (event.id === updatedEvent.id ? updatedEvent : event)));
+
+  const handleEventUpdate = async (updatedEvent: CalendarEvent) => {
+    // Check if it's a class session (not an additional event)
+    const isClassSession = optimisticClassSessions.some((cs) => cs.id === updatedEvent.id);
+
+    if (isClassSession) {
+      // Find the original class session to get additional data
+      const originalSession = optimisticClassSessions.find((cs) => cs.id === updatedEvent.id);
+
+      if (!originalSession) {
+        toast.error("Session de cours introuvable");
+        return;
+      }
+
+      // Check if user has permission to update this session
+      const canUpdate =
+        user?.user?.role === "ADMIN" || (user?.user?.role === "TEACHER" && originalSession.professor?.id === user.user.id);
+
+      if (!canUpdate) {
+        toast.error("Vous n'avez pas l'autorisation de modifier cette session");
+        return;
+      }
+
+      // Convert the updated event back to class session format
+      const updateData = {
+        id: updatedEvent.id,
+        date: format(new Date(updatedEvent.start), "yyyy-MM-dd"),
+        heureDebut: format(new Date(updatedEvent.start), "HH:mm"),
+        heureFin: format(new Date(updatedEvent.end), "HH:mm"),
+      };
+
+      // Apply optimistic update immediately for UI responsiveness
+      updateOptimisticClassSessions(updateData);
+
+      try {
+        await updateClassSessionMutation.mutateAsync(updateData);
+
+        toast.success(`Session "${updatedEvent.title}" mise à jour`, {
+          description: `Nouvelle date : ${format(new Date(updatedEvent.start), "d MMM yyyy à HH:mm", { locale: fr })}`,
+        });
+      } catch (error) {
+        console.error("Erreur lors de la mise à jour de la session:", error);
+        toast.error("Erreur lors de la mise à jour de la session");
+
+        // The optimistic update will be reverted automatically when the query refetches
+        // due to the mutation's onSuccess/onError callbacks
+      }
     } else {
-      // For class sessions, you might want to handle attendance marking here
-      console.log("Class session update requested:", updatedEvent.id);
-      // Could trigger attendance modal or API call
+      // Handle additional events (non-class sessions)
+      setAdditionalEvents((prev) => prev.map((event) => (event.id === updatedEvent.id ? updatedEvent : event)));
     }
   };
 
   const handleEventDelete = (eventId: string) => {
     // Only allow deleting additional events, not class sessions
-    const isClassSession = filteredClassSessions.some((cs) => cs.id === eventId);
+    const isClassSession = optimisticClassSessions.some((cs) => cs.id === eventId);
     if (!isClassSession) {
       setAdditionalEvents((prev) => prev.filter((event) => event.id !== eventId));
     } else {
       // For class sessions, you might want to handle cancellation here
       console.log("Class session deletion requested:", eventId);
-      // Could trigger confirmation modal
+      toast.info("La suppression des sessions de cours n'est pas autorisée via le calendrier");
     }
   };
 
@@ -149,6 +212,7 @@ export default function CourseCalendar({ classSessions = [], isLoading = false }
       onEventUpdate={handleEventUpdate}
       onEventDelete={handleEventDelete}
       initialView="week"
+      showCreateButton={false}
       CustomEventDialog={ClassSessionDialog}
     />
   );
