@@ -125,7 +125,8 @@ export class ClassSessionService {
   }
 
   /**
-   * Récupérer les sessions de cours d'un professeur
+   * Récupérer les sessions de cours pour un professeur spécifique
+   * Utilise l'endpoint général /api/v1/class-sessions et filtre côté client
    */
   static async getProfessorClassSessions(professorId: string, startDate?: string, endDate?: string): Promise<ClassSession[]> {
     try {
@@ -134,26 +135,78 @@ export class ClassSessionService {
         throw new Error("Vous devez être connecté pour accéder à cette ressource");
       }
 
-      const params: Record<string, string> = { professorId };
-      if (startDate) params.startDate = startDate;
-      if (endDate) params.endDate = endDate;
+      console.log(`🔍 Récupération des sessions pour le professeur ${professorId} (${startDate} - ${endDate})`);
 
-      const { data } = await api.get(`/api/v1/class-sessions/professor/${professorId}`, {
+      // Récupérer toutes les sessions depuis l'endpoint général
+      const { data } = await api.get(`/api/v1/class-sessions`, {
         headers: {
           Authorization: `Bearer ${token}`,
         },
-        params,
       });
 
-      return data;
+      console.log("📊 Données brutes de l'API:", data);
+
+      // L'API peut retourner soit un array directement, soit un objet avec des métadonnées
+      let allSessions: ClassSession[] = [];
+
+      if (Array.isArray(data)) {
+        allSessions = data;
+      } else if (data && Array.isArray(data.classSessions)) {
+        allSessions = data.classSessions;
+      } else if (data && Array.isArray(data.data)) {
+        allSessions = data.data;
+      } else {
+        console.warn("Format de données inattendu:", data);
+        return [];
+      }
+
+      console.log(`📚 ${allSessions.length} sessions totales trouvées`);
+
+      // Filtrer les sessions pour le professeur spécifique
+      let professorSessions = allSessions.filter((session: ClassSession) => {
+        const match = session.professor?.id === professorId;
+        if (match) {
+          console.log(`✅ Session trouvée pour le prof:`, {
+            id: session.id,
+            date: session.date,
+            course: session.course?.title,
+            professor: session.professor?.name,
+          });
+        }
+        return match;
+      });
+
+      console.log(`👨‍🏫 ${professorSessions.length} sessions trouvées pour le professeur ${professorId}`);
+
+      // Filtrer par dates si spécifiées
+      if (startDate || endDate) {
+        professorSessions = professorSessions.filter((session: ClassSession) => {
+          const sessionDate = new Date(session.date);
+          let includeSession = true;
+
+          if (startDate && sessionDate < new Date(startDate)) {
+            includeSession = false;
+          }
+          if (endDate && sessionDate > new Date(endDate)) {
+            includeSession = false;
+          }
+
+          return includeSession;
+        });
+
+        console.log(`📅 ${professorSessions.length} sessions après filtrage par dates`);
+      }
+
+      return professorSessions;
     } catch (error) {
-      console.error(`Erreur lors de la récupération des sessions de cours pour le professeur ${professorId}:`, error);
-      throw new Error("Impossible de récupérer les sessions de cours du professeur");
+      console.error(`❌ Erreur lors de la récupération des sessions de cours pour le professeur ${professorId}:`, error);
+      throw error; // Relancer l'erreur pour que React Query puisse la gérer
     }
   }
 
   /**
    * Récupérer les cours du jour pour un professeur
+   * Basé sur l'endpoint général /api/v1/class-sessions
    */
   static async getProfessorTodaysCourses(professorId: string): Promise<Course[]> {
     try {
@@ -162,38 +215,72 @@ export class ClassSessionService {
         throw new Error("Vous devez être connecté pour accéder à cette ressource");
       }
 
-      const { data } = await api.get(`/api/v1/class-sessions/professor/${professorId}/today`, {
+      console.log(`🔍 Récupération des cours du jour pour le professeur ${professorId}`);
+
+      // Récupérer toutes les sessions
+      const { data } = await api.get(`/api/v1/class-sessions`, {
         headers: {
           Authorization: `Bearer ${token}`,
         },
       });
 
+      console.log("📊 Données brutes de l'API (cours du jour):", data);
+
+      // L'API peut retourner soit un array directement, soit un objet avec des métadonnées
+      let allSessions: ClassSession[] = [];
+
+      if (Array.isArray(data)) {
+        allSessions = data;
+      } else if (data && Array.isArray(data.classSessions)) {
+        allSessions = data.classSessions;
+      } else if (data && Array.isArray(data.data)) {
+        allSessions = data.data;
+      } else {
+        console.warn("Format de données inattendu pour les cours du jour:", data);
+        return [];
+      }
+
+      // Filtrer pour le professeur et la date du jour
+      const today = new Date().toISOString().split("T")[0]; // Format YYYY-MM-DD
+      console.log(`📅 Date du jour: ${today}`);
+
+      const todaysSessions = allSessions.filter((session: ClassSession) => {
+        const isToday = session.date === today;
+        const isProfessor = session.professor?.id === professorId;
+        const match = isToday && isProfessor;
+
+        if (match) {
+          console.log(`✅ Cours trouvé pour aujourd'hui:`, {
+            id: session.id,
+            course: session.course?.title,
+            time: `${session.heureDebut} - ${session.heureFin}`,
+            professor: session.professor?.name,
+          });
+        }
+
+        return match;
+      });
+
+      console.log(`📚 ${todaysSessions.length} cours trouvés pour aujourd'hui`);
+
       // Transformer les données pour correspondre au type Course[]
-      return data.map(
-        (session: {
-          id: string;
-          course?: { title: string };
-          heureDebut: string;
-          heureFin: string;
-          location?: string;
-          emargement?: unknown;
-        }) => ({
-          id: session.id,
-          title: session.course?.title || "Sans titre",
-          startTime: session.heureDebut,
-          endTime: session.heureFin,
-          location: session.location || "Non spécifié",
-          hasAttendance: !!session.emargement,
-        })
-      );
+      return todaysSessions.map((session: ClassSession) => ({
+        id: session.id,
+        title: session.course?.title || "Sans titre",
+        startTime: session.heureDebut,
+        endTime: session.heureFin,
+        location: session.course?.location || "Non spécifié",
+        hasAttendance: false, // À implémenter selon les émargements
+      }));
     } catch (error) {
-      console.error(`Erreur lors de la récupération des cours du jour pour le professeur ${professorId}:`, error);
-      throw new Error("Impossible de récupérer les cours du jour");
+      console.error(`❌ Erreur lors de la récupération des cours du jour pour le professeur ${professorId}:`, error);
+      throw error;
     }
   }
 
   /**
    * Récupérer les cours de la semaine pour un professeur
+   * Basé sur l'endpoint général /api/v1/class-sessions
    */
   static async getProfessorWeekCourses(professorId: string, startDate: string): Promise<Course[]> {
     try {
@@ -202,34 +289,71 @@ export class ClassSessionService {
         throw new Error("Vous devez être connecté pour accéder à cette ressource");
       }
 
-      const { data } = await api.get(`/api/v1/class-sessions/professor/${professorId}/week`, {
+      console.log(`🔍 Récupération des cours de la semaine pour le professeur ${professorId} (${startDate})`);
+
+      // Récupérer toutes les sessions
+      const { data } = await api.get(`/api/v1/class-sessions`, {
         headers: {
           Authorization: `Bearer ${token}`,
         },
-        params: { startDate },
       });
 
+      console.log("📊 Données brutes de l'API (cours de la semaine):", data);
+
+      // L'API peut retourner soit un array directement, soit un objet avec des métadonnées
+      let allSessions: ClassSession[] = [];
+
+      if (Array.isArray(data)) {
+        allSessions = data;
+      } else if (data && Array.isArray(data.classSessions)) {
+        allSessions = data.classSessions;
+      } else if (data && Array.isArray(data.data)) {
+        allSessions = data.data;
+      } else {
+        console.warn("Format de données inattendu pour les cours de la semaine:", data);
+        return [];
+      }
+
+      // Calculer la date de fin de semaine (6 jours après startDate)
+      const endDate = new Date(startDate);
+      endDate.setDate(endDate.getDate() + 6);
+      const endDateStr = endDate.toISOString().split("T")[0];
+
+      console.log(`📅 Période de la semaine: ${startDate} - ${endDateStr}`);
+
+      // Filtrer pour le professeur et la semaine spécifiée
+      const weekSessions = allSessions.filter((session: ClassSession) => {
+        const inDateRange = session.date >= startDate && session.date <= endDateStr;
+        const isProfessor = session.professor?.id === professorId;
+        const match = inDateRange && isProfessor;
+
+        if (match) {
+          console.log(`✅ Cours trouvé pour la semaine:`, {
+            id: session.id,
+            date: session.date,
+            course: session.course?.title,
+            time: `${session.heureDebut} - ${session.heureFin}`,
+            professor: session.professor?.name,
+          });
+        }
+
+        return match;
+      });
+
+      console.log(`📚 ${weekSessions.length} cours trouvés pour la semaine`);
+
       // Transformer les données pour correspondre au type Course[]
-      return data.map(
-        (session: {
-          id: string;
-          course?: { title: string };
-          heureDebut: string;
-          heureFin: string;
-          location?: string;
-          emargement?: unknown;
-        }) => ({
-          id: session.id,
-          title: session.course?.title || "Sans titre",
-          startTime: session.heureDebut,
-          endTime: session.heureFin,
-          location: session.location || "Non spécifié",
-          hasAttendance: !!session.emargement,
-        })
-      );
+      return weekSessions.map((session: ClassSession) => ({
+        id: session.id,
+        title: session.course?.title || "Sans titre",
+        startTime: session.heureDebut,
+        endTime: session.heureFin,
+        location: session.course?.location || "Non spécifié",
+        hasAttendance: false, // À implémenter selon les émargements
+      }));
     } catch (error) {
-      console.error(`Erreur lors de la récupération des cours de la semaine pour le professeur ${professorId}:`, error);
-      throw new Error("Impossible de récupérer les cours de la semaine");
+      console.error(`❌ Erreur lors de la récupération des cours de la semaine pour le professeur ${professorId}:`, error);
+      throw error;
     }
   }
 }
