@@ -22,7 +22,7 @@ export class AttendanceService {
         throw new Error("Vous devez être connecté pour accéder à cette ressource");
       }
 
-      const { data } = await api.get(`/api/v1/attendances`, {
+      const { data } = await api.get(`/api/v1/emargements`, {
         headers: {
           Authorization: `Bearer ${token}`,
         },
@@ -43,7 +43,7 @@ export class AttendanceService {
         throw new Error("Vous devez être connecté pour accéder à cette ressource");
       }
 
-      const { data } = await api.get(`/api/v1/attendances/${id}`, {
+      const { data } = await api.get(`/api/v1/emargements/${id}`, {
         headers: {
           Authorization: `Bearer ${token}`,
         },
@@ -63,7 +63,7 @@ export class AttendanceService {
         throw new Error("Vous devez être connecté pour accéder à cette ressource");
       }
 
-      const { data } = await api.post(`/api/v1/attendances`, input, {
+      const { data } = await api.post(`/api/v1/emargements`, input, {
         headers: {
           Authorization: `Bearer ${token}`,
         },
@@ -84,7 +84,7 @@ export class AttendanceService {
       }
 
       const { id, ...updateData } = input;
-      const { data } = await api.patch(`/api/v1/attendances/${id}`, updateData, {
+      const { data } = await api.patch(`/api/v1/emargements/${id}`, updateData, {
         headers: {
           Authorization: `Bearer ${token}`,
         },
