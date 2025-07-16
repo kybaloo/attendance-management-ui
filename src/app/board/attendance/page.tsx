@@ -5,10 +5,10 @@ import AttendanceCalendar from "@/components/calendar/attendance-calendar";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useBreadcrumb } from "@/contexts/breadcrumb.context";
-import { useProfessorClassSessionsQuery, useProfessorTodaysCoursesQuery } from "@/hooks/queries/use-attendance.query";
+import { useClassSessionsQuery } from "@/hooks/queries/use-class-session.query";
 import { useCurrentUser } from "@/hooks/queries/use-auth.query";
 import { RiCalendar2Line, RiCheckboxLine } from "@remixicon/react";
-import { endOfWeek, format, startOfWeek } from "date-fns";
+import { endOfWeek, startOfWeek } from "date-fns";
 import { useEffect } from "react";
 import { TodaysCoursesList } from "./components/todays-courses-list";
 
@@ -22,32 +22,40 @@ export default function AttendancePage() {
   const selectedWeekStart = startOfWeek(new Date(), { weekStartsOn: 1 });
   const selectedWeekEnd = endOfWeek(new Date(), { weekStartsOn: 1 });
 
-  // Formater les dates pour la requête API
-  const weekStartDateString = format(selectedWeekStart, "yyyy-MM-dd");
-  const weekEndDateString = format(selectedWeekEnd, "yyyy-MM-dd");
-
-  // Requête pour les cours du jour (liste)
+  // Utiliser le même hook que la page Sessions de cours qui fonctionne
   const {
-    data: todaysCourses,
-    isLoading: isTodayLoading,
-    refetch: refetchTodaysCourses,
-  } = useProfessorTodaysCoursesQuery(userId || "");
+    data: classSessionsData,
+    isLoading: isSessionsLoading,
+    refetch: refetchClassSessions,
+  } = useClassSessionsQuery();
 
-  // Requête pour les sessions de cours de la semaine (calendrier)
-  const {
-    data: weekClassSessions,
-    isLoading: isWeekLoading,
-    refetch: refetchWeekClassSessions,
-  } = useProfessorClassSessionsQuery(userId || "", weekStartDateString, weekEndDateString);
+  // Filtrer les sessions pour le professeur connecté
+  const allClassSessions = Array.isArray(classSessionsData) ? classSessionsData : [];
+  
+  // Sessions du professeur pour le calendrier de la semaine
+  const professorWeekSessions = allClassSessions.filter((session) => {
+    if (!isProfessor || !userId) return false;
+    const sessionDate = new Date(session.date);
+    const isInWeek = sessionDate >= selectedWeekStart && sessionDate <= selectedWeekEnd;
+    const isProfessorSession = session.professor?.id === userId;
+    return isInWeek && isProfessorSession;
+  });
 
-  // Rafraîchir les données selon l'onglet actif
-  const refetchCurrentTab = (activeTab: string) => {
-    if (activeTab === "today") {
-      refetchTodaysCourses();
-    } else {
-      refetchWeekClassSessions();
-    }
-  };
+  // Cours du jour pour la liste (transformer les sessions en cours)
+  const today = new Date().toISOString().split('T')[0];
+  const todaysCourses = allClassSessions
+    .filter((session) => {
+      if (!isProfessor || !userId) return false;
+      return session.date === today && session.professor?.id === userId;
+    })
+    .map((session) => ({
+      id: session.id,
+      title: session.course?.title || "Sans titre",
+      startTime: session.heureDebut,
+      endTime: session.heureFin,
+      location: session.course?.location || "Non spécifié",
+      hasAttendance: false,
+    }));
 
   useEffect(() => {
     setPageTitle("Émargement des cours");
@@ -67,7 +75,7 @@ export default function AttendancePage() {
       </div>
 
       {isProfessor ? (
-        <Tabs defaultValue="today" className="w-full" onValueChange={(value) => refetchCurrentTab(value)}>
+        <Tabs defaultValue="today" className="w-full">
           <div className="flex justify-between items-center mb-4">
             <TabsList>
               <TabsTrigger value="today" className="flex items-center gap-2">
@@ -81,7 +89,7 @@ export default function AttendancePage() {
             </TabsList>
             <Button
               variant="outline"
-              onClick={() => refetchCurrentTab(document.querySelector('[aria-selected="true"]')?.getAttribute("value") || "today")}
+              onClick={() => refetchClassSessions()}
             >
               Actualiser
             </Button>
@@ -89,16 +97,16 @@ export default function AttendancePage() {
           <TabsContent value="today" className="mt-0">
             <TodaysCoursesList
               courses={todaysCourses || []}
-              isLoading={isTodayLoading}
-              onAttendanceSubmitted={() => refetchTodaysCourses()}
+              isLoading={isSessionsLoading}
+              onAttendanceSubmitted={() => refetchClassSessions()}
             />
           </TabsContent>
           <TabsContent value="week" className="mt-0">
             <CalendarProvider>
               <AttendanceCalendar
-                classSessions={weekClassSessions || []}
-                isLoading={isWeekLoading}
-                onAttendanceSubmitted={() => refetchWeekClassSessions()}
+                classSessions={professorWeekSessions || []}
+                isLoading={isSessionsLoading}
+                onAttendanceSubmitted={() => refetchClassSessions()}
               />
             </CalendarProvider>
           </TabsContent>
