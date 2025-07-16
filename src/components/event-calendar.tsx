@@ -34,6 +34,7 @@ export interface EventCalendarProps {
   onEventDelete?: (eventId: string) => void;
   className?: string;
   initialView?: CalendarView;
+  showCreateButton?: boolean;
   CustomEventDialog?: React.ComponentType<{
     event: CalendarEvent | null;
     isOpen: boolean;
@@ -50,6 +51,7 @@ export function EventCalendar({
   onEventDelete,
   className,
   initialView = "month",
+  showCreateButton = true,
   CustomEventDialog,
 }: EventCalendarProps) {
   // Use the shared calendar context instead of local state
@@ -280,16 +282,18 @@ export function EventCalendar({
               </Button>
             </div>
             <div className="flex items-center justify-between gap-2">
-              <Button
-                variant="outline"
-                className="max-sm:h-8 max-sm:px-2.5!"
-                onClick={() => {
-                  setSelectedEvent(null); // Ensure we're creating a new event
-                  setIsEventDialogOpen(true);
-                }}
-              >
-                Nouvelle session
-              </Button>
+              {showCreateButton && (
+                <Button
+                  variant="outline"
+                  className="max-sm:h-8 max-sm:px-2.5!"
+                  onClick={() => {
+                    setSelectedEvent(null); // Ensure we're creating a new event
+                    setIsEventDialogOpen(true);
+                  }}
+                >
+                  Nouvelle session
+                </Button>
+              )}
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                   <Button variant="outline" className="gap-1.5 max-sm:h-8 max-sm:px-2! max-sm:gap-1">
