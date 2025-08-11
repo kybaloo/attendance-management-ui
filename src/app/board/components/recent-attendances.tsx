@@ -56,8 +56,19 @@ function transformEmargementData(emargement: RecentEmargement): AttendanceData {
     }
   };
 
-  const formatTime = (debut: string, fin: string) => {
-    return `${debut} - ${fin}`;
+  const formatTime = (debut?: string, fin?: string) => {
+    if (!debut || !fin) {
+      return "Horaire non défini";
+    }
+    try {
+      const debutTime = new Date(`2000-01-01T${debut}`);
+      const finTime = new Date(`2000-01-01T${fin}`);
+      const debutFormatted = format(debutTime, "HH:mm");
+      const finFormatted = format(finTime, "HH:mm");
+      return `${debutFormatted} - ${finFormatted}`;
+    } catch {
+      return `${debut} - ${fin}`;
+    }
   };
 
   // Mapper les statuts API vers les statuts d'affichage
@@ -70,13 +81,13 @@ function transformEmargementData(emargement: RecentEmargement): AttendanceData {
   return {
     id: emargement.id,
     professor: {
-      name: emargement.professor.name,
-      initials: getInitials(emargement.professor.name),
+      name: emargement.professor?.name || "Professeur non défini",
+      initials: getInitials(emargement.professor?.name || "ND"),
     },
-    courseTitle: emargement.classSession.course.title,
+    courseTitle: emargement.classSession?.course?.title || "Cours non défini",
     status: mapStatus(emargement.status),
-    date: formatDate(emargement.classSession.date),
-    time: formatTime(emargement.classSession.heureDebut, emargement.classSession.heureFin),
+    date: formatDate(emargement.classSession?.date || new Date().toISOString()),
+    time: formatTime(emargement.classSession?.heureDebut, emargement.classSession?.heureFin),
     department: "Non spécifié", // Simplifié car programme n'existe pas sur Course
   };
 }
