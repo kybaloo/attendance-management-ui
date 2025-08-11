@@ -35,19 +35,19 @@ export interface StatisticsFilters {
 // Type pour les émargements récents
 export interface RecentEmargement {
   id: string;
-  professor: {
+  professor?: {
     id: string;
     name: string;
     avatar?: string;
   };
-  classSession: {
+  classSession?: {
     id: string;
     date: string;
-    heureDebut: string;
-    heureFin: string;
-    course: {
+    heureDebut?: string;
+    heureFin?: string;
+    course?: {
       id: string;
-      title: string;
+      title?: string;
     };
   };
   status: "PRESENT" | "ABSENT" | "PENDING" | "SUPERVISOR_CONFIRMED" | "CLASS_HEADER_CONFIRMED";
