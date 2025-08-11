@@ -45,6 +45,7 @@ export interface RecentEmargement {
     date: string;
     heureDebut?: string;
     heureFin?: string;
+    courseId?: string; // Ajout du courseId qui peut venir de l'API
     course?: {
       id: string;
       title?: string;
@@ -148,12 +149,50 @@ export class StatisticsService {
     }
 
     try {
-      const { data } = await api.get(`/api/v1/emargements?limit=${limit}`, {
+      // Utiliser l'endpoint avec des paramètres pour inclure les relations
+      const { data } = await api.get(`/api/v1/emargements`, {
         headers: {
           Authorization: `Bearer ${token}`,
         },
+        params: {
+          limit,
+          // Ajouter des paramètres pour inclure les relations si supporté par l'API
+          include: "classSession,professor,classSession.course",
+          populate: "classSession.course,professor",
+        },
       });
-      return Array.isArray(data) ? data : data.emargements || [];
+
+      const emargements = Array.isArray(data) ? data : data.emargements || [];
+
+      // Log pour debug - à supprimer en production
+      console.log("Émargements reçus:", JSON.stringify(emargements[0], null, 2));
+
+      // Enrichir les données si les informations de cours sont manquantes
+      const enrichedEmargements = await Promise.all(
+        emargements.map(async (emargement: RecentEmargement) => {
+          // Si le cours n'a pas de title et qu'on a un courseId
+          if (emargement.classSession?.courseId && !emargement.classSession?.course?.title) {
+            try {
+              const courseResponse = await api.get(`/api/v1/courses/${emargement.classSession.courseId}`, {
+                headers: { Authorization: `Bearer ${token}` },
+              });
+
+              if (courseResponse.data && emargement.classSession) {
+                emargement.classSession.course = {
+                  id: courseResponse.data.id,
+                  title: courseResponse.data.title || courseResponse.data.name,
+                };
+              }
+            } catch (courseError) {
+              console.warn(`Impossible de récupérer le cours ${emargement.classSession.courseId}:`, courseError);
+            }
+          }
+
+          return emargement;
+        })
+      );
+
+      return enrichedEmargements;
     } catch (error) {
       console.error("Erreur lors de la récupération des émargements récents:", error);
       throw new Error("Impossible de récupérer les émargements récents");
