@@ -21,7 +21,7 @@ export default function ClassSessionsPage() {
   };
 
   // Calculer les données paginées
-  const classSessions = Array.isArray(data) ? data : [];
+  const classSessions = data?.classSessions || [];
 
   useEffect(() => {
     setPageTitle("Sessions de cours");
