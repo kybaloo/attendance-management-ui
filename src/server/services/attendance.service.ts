@@ -104,9 +104,13 @@ export class AttendanceService {
         throw new Error("Vous devez être connecté pour accéder à cette ressource");
       }
 
-      const { data } = await api.get(`/api/v1/attendances/professor/${professorId}`, {
+      // Utiliser l'endpoint des émargements avec un filtre sur le professeur
+      const { data } = await api.get(`/api/v1/emargements`, {
         headers: {
           Authorization: `Bearer ${token}`,
+        },
+        params: {
+          professorId: professorId,
         },
       });
 
@@ -288,27 +292,77 @@ export class AttendanceService {
   // Récupérer les prochains cours pour tous les rôles
   static async getUpcomingCourses(userId: string, userRole: string, limit = 5): Promise<UpcomingCourse[]> {
     try {
-      let endpoint = "";
-
-      switch (userRole) {
-        case "PROFESSOR":
-          endpoint = `/professor/${userId}/upcoming-courses?limit=${limit}`;
-          break;
-        case "ADMIN":
-          endpoint = `/admin/upcoming-courses?limit=${limit}`;
-          break;
-        case "STUDENT":
-          endpoint = `/student/${userId}/upcoming-courses?limit=${limit}`;
-          break;
-        case "CLASS_DELEGATE":
-          endpoint = `/class-delegate/${userId}/upcoming-courses?limit=${limit}`;
-          break;
-        default:
-          endpoint = `/upcoming-courses?limit=${limit}`;
+      const token = getAuthToken();
+      if (!token) {
+        throw new Error("Vous devez être connecté pour accéder à cette ressource");
       }
 
-      const response = await api.get<UpcomingCourse[]>(endpoint);
-      return response.data;
+      // Utiliser l'endpoint des sessions de classe avec des paramètres de filtrage
+      // selon le rôle de l'utilisateur et la date actuelle
+      const today = new Date().toISOString().split("T")[0];
+      const endpoint = "/api/v1/class-sessions";
+      const params: Record<string, string | number> = {
+        limit,
+        // Filtrer les sessions futures
+        dateFrom: today,
+      };
+
+      // Ajouter des paramètres spécifiques selon le rôle
+      switch (userRole) {
+        case "PROFESSOR":
+          params.professorId = userId;
+          break;
+        case "ADMIN":
+          // Les admins peuvent voir toutes les sessions
+          break;
+        case "STUDENT":
+        case "CLASS_DELEGATE":
+          // Pour les étudiants et délégués, on pourrait filtrer par programme/département
+          // mais l'API ne semble pas avoir ces filtres, donc on récupère tout
+          break;
+        default:
+          break;
+      }
+
+      interface ClassSessionResponse {
+        id: string;
+        date: string;
+        heureDebut?: string;
+        heureFin?: string;
+        course?: {
+          title?: string;
+          location?: string;
+          department?: string;
+        };
+        professor?: {
+          name?: string;
+        };
+      }
+
+      const response = await api.get<ClassSessionResponse[]>(endpoint, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+        params,
+      });
+
+      // Transformer les données de l'API en format UpcomingCourse
+      const upcomingCourses: UpcomingCourse[] = response.data.map((session: ClassSessionResponse) => ({
+        id: session.id,
+        title: session.course?.title || "Cours sans titre",
+        professor: session.professor?.name || "Professeur non assigné",
+        startTime: session.heureDebut
+          ? new Date(session.heureDebut).toLocaleTimeString("fr-FR", { hour: "2-digit", minute: "2-digit" })
+          : "",
+        endTime: session.heureFin
+          ? new Date(session.heureFin).toLocaleTimeString("fr-FR", { hour: "2-digit", minute: "2-digit" })
+          : "",
+        location: session.course?.location || "Salle non définie",
+        date: session.date,
+        department: session.course?.department || "Département non défini",
+      }));
+
+      return upcomingCourses;
     } catch (error) {
       console.error("Erreur lors de la récupération des prochains cours:", error);
       // Retourner des données de démonstration en cas d'erreur
