@@ -13,7 +13,7 @@ import { AgendaDaysToShow, EventGap, EventHeight, WeekCellsHeight } from "@/comp
 import { DayView } from "@/components/day-view";
 import { EventDialog } from "@/components/event-dialog";
 import { MonthView } from "@/components/month-view";
-import Participants from "@/components/participants";
+// import Participants from "@/components/participants";
 import { CalendarEvent, CalendarView } from "@/components/types";
 import { Button } from "@/components/ui/button";
 import {
@@ -265,7 +265,7 @@ export function EventCalendar({
             <div className="flex items-center gap-1.5">
               <h2 className="font-semibold text-xl transition-transform ease-in-out duration-300">{viewTitle}</h2>
             </div>
-            <Participants />
+            {/* <Participants /> */}
           </div>
           <div className="flex items-center justify-between gap-2">
             <div className="flex items-center justify-between gap-2">
