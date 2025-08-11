@@ -91,6 +91,15 @@ export default function CourseCalendar({ classSessions = [], isLoading = false }
     return classSessions;
   }, [classSessions, user]);
 
+  // Determine if user can create sessions
+  const canCreateSession = useMemo(() => {
+    if (!user?.user) return false;
+
+    const userRole = user.user.role;
+    // Admins and teachers can create sessions
+    return userRole === "ADMIN" || userRole === "SUPERVISOR";
+  }, [user]);
+
   // Use optimistic updates for class sessions
   const [optimisticClassSessions, updateOptimisticClassSessions] = useOptimistic(
     filteredClassSessions,
@@ -212,7 +221,7 @@ export default function CourseCalendar({ classSessions = [], isLoading = false }
       onEventUpdate={handleEventUpdate}
       onEventDelete={handleEventDelete}
       initialView="week"
-      showCreateButton={false}
+      showCreateButton={canCreateSession}
       CustomEventDialog={ClassSessionDialog}
     />
   );
