@@ -22,6 +22,7 @@ import AdminHeader from "@/components/shared/navigation/admin-header";
 import { AppSidebar } from "@/components/shared/navigation/app.sidebar";
 import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar";
 import { BreadcrumbProvider } from "@/contexts/breadcrumb.context";
+import { AuthGuard } from "@/components/auth/auth-guard";
 import { useEffect, useState } from "react";
 
 export default function AdminLayout({ children }: Readonly<{ children: React.ReactNode }>) {
@@ -30,18 +31,18 @@ export default function AdminLayout({ children }: Readonly<{ children: React.Rea
   useEffect(() => {
     setIsClient(true);
   }, []);
-  // Only after confirming we're client-side, check for the token
-  // const token = typeof window !== "undefined" ? localStorage.getItem("token") : null;
 
   return (
-    <SidebarProvider>
-      <BreadcrumbProvider>
-        <AppSidebar />
-        <SidebarInset className="overflow-hidden px-4 md:px-6 lg:px-8">
-          <AdminHeader />
-          {children}
-        </SidebarInset>
-      </BreadcrumbProvider>
-    </SidebarProvider>
+    <AuthGuard>
+      <SidebarProvider>
+        <BreadcrumbProvider>
+          <AppSidebar />
+          <SidebarInset className="overflow-hidden px-4 md:px-6 lg:px-8">
+            <AdminHeader />
+            {children}
+          </SidebarInset>
+        </BreadcrumbProvider>
+      </SidebarProvider>
+    </AuthGuard>
   );
 }
