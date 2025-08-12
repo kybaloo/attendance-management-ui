@@ -11,11 +11,9 @@ import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Textarea } from "@/components/ui/textarea";
 import { useAcademicYearsQuery } from "@/hooks/queries/use-academic-year.query";
 import { useCoursesQuery } from "@/hooks/queries/use-course.query";
 import { useUsersQuery } from "@/hooks/queries/use-user.query";
@@ -31,7 +29,6 @@ interface ClassSessionDialogProps {
 
 export function ClassSessionDialog({ event, isOpen, onClose, onSave, onDelete }: ClassSessionDialogProps) {
   const [title, setTitle] = useState("");
-  const [description, setDescription] = useState("");
   const [startDate, setStartDate] = useState<Date>(new Date());
   const [endDate, setEndDate] = useState<Date>(new Date());
   const [startTime, setStartTime] = useState(`${DefaultStartHour}:00`);
@@ -59,7 +56,6 @@ export function ClassSessionDialog({ event, isOpen, onClose, onSave, onDelete }:
   useEffect(() => {
     if (event) {
       setTitle(event.title || "");
-      setDescription(event.description || "");
       setLocation(event.location || "");
 
       const startDateTime = new Date(event.start);
@@ -70,10 +66,17 @@ export function ClassSessionDialog({ event, isOpen, onClose, onSave, onDelete }:
       setStartTime(format(startDateTime, "HH:mm"));
       setEndTime(format(endDateTime, "HH:mm"));
       setAllDay(event.allDay || false);
+
+      // Pré-remplir les identifiants si disponibles dans meta
+      if (event.meta) {
+        setCourseId(event.meta.courseId || "");
+        setProfessorId(event.meta.professorId || "");
+        setClassRepresentativeId(event.meta.classRepresentativeId || "");
+        setAcademicYearId(event.meta.academicYearId || "");
+      }
     } else {
       // Reset form for new event
       setTitle("");
-      setDescription("");
       setLocation("");
       setCourseId("");
       setProfessorId("");
@@ -93,6 +96,21 @@ export function ClassSessionDialog({ event, isOpen, onClose, onSave, onDelete }:
 
     if (!courseId) {
       setError("Le cours est requis");
+      return;
+    }
+
+    if (!academicYearId) {
+      setError("L'année académique est requise");
+      return;
+    }
+
+    if (!professorId) {
+      setError("Le professeur est requis");
+      return;
+    }
+
+    if (!classRepresentativeId) {
+      setError("Le délégué de classe est requis");
       return;
     }
 
@@ -127,12 +145,17 @@ export function ClassSessionDialog({ event, isOpen, onClose, onSave, onDelete }:
     const savedEvent: CalendarEvent = {
       id: event?.id || "",
       title: courseTitle,
-      description: description.trim(),
       start: startDateTime,
       end: endDateTime,
       allDay,
       location: location.trim(),
       color: event?.color || "blue",
+      meta: {
+        courseId,
+        professorId,
+        classRepresentativeId,
+        academicYearId,
+      },
     };
 
     onSave(savedEvent);
@@ -184,7 +207,7 @@ export function ClassSessionDialog({ event, isOpen, onClose, onSave, onDelete }:
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="professor-select">Professeur</Label>
+            <Label htmlFor="professor-select">Professeur *</Label>
             <Select value={professorId} onValueChange={setProfessorId}>
               <SelectTrigger>
                 <SelectValue placeholder="Sélectionnez un professeur" />
@@ -202,7 +225,7 @@ export function ClassSessionDialog({ event, isOpen, onClose, onSave, onDelete }:
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="class-rep-select">Délégué de classe</Label>
+            <Label htmlFor="class-rep-select">Délégué de classe *</Label>
             <Select value={classRepresentativeId} onValueChange={setClassRepresentativeId}>
               <SelectTrigger>
                 <SelectValue placeholder="Sélectionnez un délégué" />
@@ -220,17 +243,7 @@ export function ClassSessionDialog({ event, isOpen, onClose, onSave, onDelete }:
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="location">Salle / Lieu</Label>
-            <Input
-              id="location"
-              value={location}
-              onChange={(e) => setLocation(e.target.value)}
-              placeholder="Ex: Salle A101, Amphithéâtre..."
-            />
-          </div>
-
-          <div className="space-y-2">
-            <Label htmlFor="academic-year-select">Année académique</Label>
+            <Label htmlFor="academic-year-select">Année académique *</Label>
             <Select value={academicYearId} onValueChange={setAcademicYearId}>
               <SelectTrigger>
                 <SelectValue placeholder="Sélectionnez une année académique" />
@@ -343,17 +356,6 @@ export function ClassSessionDialog({ event, isOpen, onClose, onSave, onDelete }:
               </div>
             </div>
           )}
-
-          <div className="space-y-2">
-            <Label htmlFor="description">Description / Notes</Label>
-            <Textarea
-              id="description"
-              value={description}
-              onChange={(e) => setDescription(e.target.value)}
-              placeholder="Informations supplémentaires sur la session..."
-              rows={3}
-            />
-          </div>
         </div>
 
         <DialogFooter className="flex-col sm:flex-row gap-2">
