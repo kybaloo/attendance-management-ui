@@ -29,9 +29,9 @@ export default function AttendancePage() {
     refetch: refetchClassSessions,
   } = useClassSessionsQuery();
 
-  // Filtrer les sessions pour le professeur connecté
-  const allClassSessions = Array.isArray(classSessionsData) ? classSessionsData : [];
-  
+  // Récupération normalisée des sessions
+  const allClassSessions = classSessionsData?.classSessions || [];
+
   // Sessions du professeur pour le calendrier de la semaine
   const professorWeekSessions = allClassSessions.filter((session) => {
     if (!isProfessor || !userId) return false;
@@ -42,7 +42,7 @@ export default function AttendancePage() {
   });
 
   // Cours du jour pour la liste (transformer les sessions en cours)
-  const today = new Date().toISOString().split('T')[0];
+  const today = new Date().toISOString().split("T")[0];
   const todaysCourses = allClassSessions
     .filter((session) => {
       if (!isProfessor || !userId) return false;
@@ -50,10 +50,13 @@ export default function AttendancePage() {
     })
     .map((session) => ({
       id: session.id,
-      title: session.course?.title || "Sans titre",
+      title:
+        (session.course && (session.course as { title?: string }).title) ||
+        (session.course && (session.course as { name?: string }).name) ||
+        "Sans titre",
       startTime: session.heureDebut,
       endTime: session.heureFin,
-      location: session.course?.location || "Non spécifié",
+      location: ((session.course as { location?: string })?.location) || "Non spécifié",
       hasAttendance: false,
     }));
 
@@ -87,10 +90,7 @@ export default function AttendancePage() {
                 <span>Calendrier</span>
               </TabsTrigger>
             </TabsList>
-            <Button
-              variant="outline"
-              onClick={() => refetchClassSessions()}
-            >
+            <Button variant="outline" onClick={() => refetchClassSessions()}>
               Actualiser
             </Button>
           </div>
