@@ -24,7 +24,26 @@ export class ClassSessionService {
           Authorization: `Bearer ${token}`,
         },
       });
-      return data;
+
+      // Normaliser différents formats de réponses potentiels
+      let classSessions: ClassSession[] = [];
+      if (Array.isArray(data)) {
+        classSessions = data;
+      } else if (data && Array.isArray(data.classSessions)) {
+        classSessions = data.classSessions;
+      } else if (data && Array.isArray(data.data)) {
+        classSessions = data.data;
+      } else {
+        console.warn("Format inattendu pour /class-sessions:", data);
+        classSessions = [];
+      }
+
+      return {
+        classSessions,
+        total: typeof (data?.total) === "number" ? data.total : classSessions.length,
+        page: typeof (data?.page) === "number" ? data.page : 1,
+        limit: typeof (data?.limit) === "number" ? data.limit : classSessions.length,
+      };
     } catch (error) {
       console.error("Erreur lors de la récupération des sessions de cours:", error);
       throw new Error("Impossible de récupérer les sessions de cours");
