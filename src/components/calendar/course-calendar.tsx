@@ -5,7 +5,7 @@ import { ClassSessionDialog } from "@/components/class-session-dialog";
 import { EventCalendar } from "@/components/event-calendar";
 import { CalendarEvent, EventColor } from "@/components/types";
 import { useCurrentUser } from "@/hooks/queries/use-auth.query";
-import { useUpdateClassSessionMutation } from "@/hooks/queries/use-class-session.query";
+import { useCreateClassSessionMutation, useUpdateClassSessionMutation } from "@/hooks/queries/use-class-session.query";
 import { ClassSession } from "@/types/attendance.types";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
@@ -51,7 +51,10 @@ const transformClassSessionToEvent = (classSession: ClassSession): CalendarEvent
 
   return {
     id: classSession.id,
-    title: classSession.course?.title || "Session de cours",
+    title:
+      (classSession.course && (classSession.course as { title?: string }).title) ||
+      (classSession.course && (classSession.course as { name?: string }).name) ||
+      "Session de cours",
     description: `Professeur: ${classSession.professor?.name || "À définir"}\nDélégué: ${
       classSession.classRepresentative?.name || "À définir"
     }\nAnnée académique: ${classSession.academicYear?.periode || "À définir"}\nHoraire: ${classSession.heureDebut} - ${
@@ -60,8 +63,17 @@ const transformClassSessionToEvent = (classSession: ClassSession): CalendarEvent
     start,
     end,
     color,
-    location: classSession.course?.location || "À définir",
-    label: classSession.course?.title || "Session de cours",
+    location: (classSession.course as { location?: string })?.location || "À définir",
+    label:
+      (classSession.course && (classSession.course as { title?: string }).title) ||
+      (classSession.course && (classSession.course as { name?: string }).name) ||
+      "Session de cours",
+    meta: {
+      courseId: classSession.course?.id,
+      professorId: classSession.professor?.id,
+      classRepresentativeId: classSession.classRepresentative?.id,
+      academicYearId: classSession.academicYear?.id,
+    },
   };
 };
 
@@ -69,6 +81,7 @@ export default function CourseCalendar({ classSessions = [], isLoading = false }
   const { isColorVisible } = useCalendarContext();
   const { data: user } = useCurrentUser();
   const updateClassSessionMutation = useUpdateClassSessionMutation();
+  const createClassSessionMutation = useCreateClassSessionMutation();
 
   // Filter class sessions based on user role
   const filteredClassSessions = useMemo(() => {
@@ -96,7 +109,7 @@ export default function CourseCalendar({ classSessions = [], isLoading = false }
     if (!user?.user) return false;
 
     const userRole = user.user.role;
-    // Admins and teachers can create sessions
+    // Admins and supervisors can create sessions
     return userRole === "ADMIN" || userRole === "SUPERVISOR";
   }, [user]);
 
@@ -135,7 +148,38 @@ export default function CourseCalendar({ classSessions = [], isLoading = false }
     return allEvents.filter((event) => isColorVisible(event.color));
   }, [allEvents, isColorVisible]);
 
-  const handleEventAdd = (event: CalendarEvent) => {
+  const handleEventAdd = async (event: CalendarEvent) => {
+    // Si l'événement provient du dialog de session avec meta rempli, on persiste via l'API
+    const meta = event.meta;
+    if (meta?.courseId && meta.academicYearId && meta.professorId && meta.classRepresentativeId) {
+      try {
+        const payload = {
+          date: new Date(event.start).toISOString(),
+          heureDebut: format(new Date(event.start), "HH:mm"),
+          heureFin: format(new Date(event.end), "HH:mm"),
+          academicYearId: meta.academicYearId,
+          courseId: meta.courseId,
+          professorId: meta.professorId,
+          classRepresentativeId: meta.classRepresentativeId,
+        } as const;
+
+        await createClassSessionMutation.mutateAsync(payload);
+
+        // Optionnel: affichage toast succès avec détails
+        toast.success(`Session "${event.title}" créée`, {
+          description: `Le ${format(new Date(event.start), "d MMM yyyy à HH:mm", { locale: fr })}`,
+        });
+
+        // Ne pas ajouter d'événement local ad hoc: les queries seront invalidées et le calendrier rechargé
+        return;
+      } catch (e) {
+        console.error("Échec création session:", e);
+        toast.error("Impossible d'enregistrer la session de cours");
+        return;
+      }
+    }
+
+    // Sinon, fallback: c'est un simple événement visuel (non lié à l'API)
     setAdditionalEvents((prev) => [...prev, event]);
   };
 
@@ -164,7 +208,7 @@ export default function CourseCalendar({ classSessions = [], isLoading = false }
       // Convert the updated event back to class session format
       const updateData = {
         id: updatedEvent.id,
-        date: format(new Date(updatedEvent.start), "yyyy-MM-dd"),
+        date: new Date(updatedEvent.start).toISOString(),
         heureDebut: format(new Date(updatedEvent.start), "HH:mm"),
         heureFin: format(new Date(updatedEvent.end), "HH:mm"),
       };
