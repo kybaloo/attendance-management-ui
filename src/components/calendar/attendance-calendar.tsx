@@ -7,6 +7,7 @@ import { useEmargementMutation } from "@/hooks/queries/use-attendance.query";
 import { useCurrentUser } from "@/hooks/queries/use-auth.query";
 import { ClassSession } from "@/types/attendance.types";
 import { useMemo, useState } from "react";
+import { PiSpinnerGap } from "react-icons/pi";
 import { toast } from "sonner";
 
 interface AttendanceCalendarProps {
@@ -176,7 +177,7 @@ export default function AttendanceCalendar({ classSessions = [], isLoading = fal
     return (
       <div className="flex items-center justify-center h-96">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-primary"></div>
+          <PiSpinnerGap className="h-8 w-8 animate-spin text-primary" />
           <p className="mt-4 text-muted-foreground">{isPending ? "Envoi de l'émargement..." : "Chargement du calendrier..."}</p>
         </div>
       </div>
