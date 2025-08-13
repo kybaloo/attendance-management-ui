@@ -21,6 +21,7 @@ import {
 import { format, parseISO } from "date-fns";
 import { fr } from "date-fns/locale";
 import Link from "next/link";
+import { PiSpinnerGap } from "react-icons/pi";
 
 // Type pour les données d'émargement transformées
 interface AttendanceData {
@@ -185,7 +186,7 @@ export function RecentAttendances() {
           <CardContent>
             {isEmargementsLoading ? (
               <div className="flex items-center justify-center h-32">
-                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+                <PiSpinnerGap className="h-8 w-8 animate-spin text-primary" />
               </div>
             ) : displayEmargements.length > 0 ? (
               <div className="space-y-4">
@@ -243,7 +244,7 @@ export function RecentAttendances() {
           <CardContent>
             {isDepartmentsLoading ? (
               <div className="flex items-center justify-center h-32">
-                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+                <PiSpinnerGap className="h-8 w-8 animate-spin text-primary" />
               </div>
             ) : departmentStats.length > 0 ? (
               <div className="space-y-4">
@@ -283,7 +284,7 @@ export function RecentAttendances() {
           <CardContent>
             {isCoursesLoading ? (
               <div className="flex items-center justify-center h-32">
-                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+                <PiSpinnerGap className="h-8 w-8 animate-spin text-primary" />
               </div>
             ) : upcomingCoursesDisplay.length > 0 ? (
               <div className="space-y-4">
