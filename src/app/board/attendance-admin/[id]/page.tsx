@@ -12,6 +12,7 @@ import { fr } from "date-fns/locale";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { use, useEffect } from "react";
+import { PiSpinnerGap } from "react-icons/pi";
 import { toast } from "sonner";
 
 interface AttendanceDetailPageProps {
@@ -92,7 +93,7 @@ export default function AttendanceDetailPage({ params }: AttendanceDetailPagePro
   if (isLoading) {
     return (
       <div className="flex items-center justify-center h-64">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+        <PiSpinnerGap className="h-8 w-8 animate-spin text-primary" />
       </div>
     );
   }
