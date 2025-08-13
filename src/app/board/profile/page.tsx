@@ -19,13 +19,13 @@ import {
   RiUserLine,
   RiShieldUserLine,
   RiAwardLine,
-  RiTimeLine,
-  RiLoader4Line,
+  RiTimeLine
 } from "@remixicon/react";
 import { useState, useEffect } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useCurrentUser } from "@/hooks/queries/use-auth.query";
 import { UserRole } from "@/types/auth.types";
+import { PiSpinnerGap } from "react-icons/pi";
 
 export default function ProfilePage() {
   const [isEditing, setIsEditing] = useState(false);
@@ -119,7 +119,7 @@ export default function ProfilePage() {
     return (
       <div className="flex-1 space-y-6 p-6">
         <div className="flex items-center justify-center h-64">
-          <RiLoader4Line className="h-8 w-8 animate-spin text-muted-foreground" />
+          <PiSpinnerGap className="h-8 w-8 animate-spin text-primary" />
         </div>
       </div>
     );
